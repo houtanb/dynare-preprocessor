@@ -6568,3 +6568,15 @@ DynamicModel::substituteVarExpectation(const map<string, expr_t> &subst_table)
   for (auto & equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteVarExpectation(subst_table));
 }
+
+void
+DynamicModel::writeEquations() const
+{
+  cout << endl << endl;
+  for (int i = 0; i < (int) equations.size(); i++)
+    {
+      cout << "EQUATION #" << i << ":" << endl;
+      equations[i]->write();
+      cout << endl << "--------------------------------------" << endl;
+    }
+}

@@ -629,6 +629,7 @@ public:
   bool ParamUsedWithLeadLag() const;
 
   bool isChecksumMatching(const string &basename) const;
+  void writeEquations() const;
 };
 
 //! Classes to re-order derivatives for various sparse storage formats
