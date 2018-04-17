@@ -312,6 +312,8 @@ class ExprNode
       {
       };
 
+      virtual void write() const = 0;
+
       class EvalExternalFunctionException : public EvalException
 
       {
@@ -585,6 +587,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -675,6 +678,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -787,6 +791,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   bool createAuxVarForUnaryOpNodeInDiffOp() const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
@@ -918,6 +923,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1023,6 +1029,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1128,6 +1135,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1323,6 +1331,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
@@ -1408,6 +1417,7 @@ public:
   virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
   virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const;
   virtual expr_t substituteAdl() const;
+  virtual void write() const;
   virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const;
   virtual void findDiffUnaryOpNodes(DataTree &static_datatree, set<UnaryOpNode *> &unary_op_nodes_in_diff) const;
   virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;

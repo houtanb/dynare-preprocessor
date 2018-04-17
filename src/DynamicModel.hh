@@ -621,6 +621,7 @@ public:
   void writeThirdDerivativesC_csr(const string &basename, bool cuda) const;
 
   bool isChecksumMatching(const string &basename) const;
+  void writeEquations() const;
 };
 
 //! Classes to re-order derivatives for various sparse storage formats

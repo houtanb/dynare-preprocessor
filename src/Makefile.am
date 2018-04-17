@@ -39,6 +39,7 @@ dynare_m_SOURCES = \
 	Statement.cc \
 	Statement.hh \
 	ExprNode.cc \
+	ExprNodeWrite.cc \
 	ExprNode.hh \
 	MinimumFeedbackSet.cc \
 	MinimumFeedbackSet.hh \
