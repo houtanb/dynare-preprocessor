@@ -5391,7 +5391,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_mod
 void
 DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers)
 {
-  diff_table_t nodes;
+  unary_op_aux_var_table_t nodes;
 
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
