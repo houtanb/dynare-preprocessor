@@ -1638,11 +1638,16 @@ ParsingDriver::var_model()
     error("You must pass the model_name option to the var_model statement.");
   const string *name = new string(it->second);
 
-  if (options_list.vector_str_options.find("var.eqtags") != options_list.vector_str_options.end())
-    if (!symbol_list.empty())
-      error("You cannot pass a symbol list when passing equation tags to the var_model statement");
-    else if (options_list.num_options.find("var.order") != options_list.num_options.end())
-      error("You cannot pass the order option when passing equation tags to the var_model statement");
+  OptionsList::vec_str_options_t::iterator mit =
+    options_list.vector_str_options.find("var.eqtags");
+  if (mit != options_list.vector_str_options.end())
+    {
+      if (!symbol_list.empty())
+        error("You cannot pass a symbol list when passing equation tags to the var_model statement");
+      else if (options_list.num_options.find("var.order") != options_list.num_options.end())
+        error("You cannot pass the order option when passing equation tags to the var_model statement");
+      mod_file->substitute_unary_ops_in_equation_tags.insert(mit->second.begin(), mit->second.end());
+    }
 
   if (!symbol_list.empty())
     if (options_list.num_options.find("var.order") == options_list.num_options.end())

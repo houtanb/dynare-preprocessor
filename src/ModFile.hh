@@ -112,6 +112,8 @@ public:
   /*! (i.e. option parallel_local_files of model block) */
   vector<string> parallel_local_files;
 
+  set<string> substitute_unary_ops_in_equation_tags;
+
 private:
   //! List of statements
   vector<Statement *> statements;

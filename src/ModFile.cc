@@ -363,33 +363,19 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
-  // Get all equation tags associated with VARs and Pac Models
-  string var_model_name;
-  set<string> eqtags;
-  map<string, vector<string>> var_model_eq_tags;
-  map<string, pair<SymbolList, int>> var_model_info_var_expectation;
-  for (auto & statement : statements)
-    {
-      auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != nullptr)
-        {
-          vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
-          for (auto & eqtag : var_model_eq_tags[var_model_name])
-            eqtags.insert(eqtag);
-        }
-    }
-
   if (transform_unary_ops)
     dynamic_model.substituteUnaryOps(diff_static_model);
   else
     // substitute only those unary ops that appear in VAR equations
-    dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
+    dynamic_model.substituteUnaryOps(diff_static_model, substitute_unary_ops_in_equation_tags);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
   ExprNode::subst_table_t diff_subst_table;
   dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
   // Var Model
+  map<string, vector<string>> var_model_eq_tags;
+  map<string, pair<SymbolList, int>> var_model_info_var_expectation;
   map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>
     var_model_info_pac_expectation;
   for (auto & statement : statements)
