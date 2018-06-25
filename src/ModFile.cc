@@ -367,6 +367,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     dynamic_model.substituteUnaryOps(diff_static_model);
   else
     // substitute only those unary ops that appear in VAR equations
+    // NB: equation tags are stored at parsing time in `substitute_unary_ops_in_equation_tags`
     dynamic_model.substituteUnaryOps(diff_static_model, substitute_unary_ops_in_equation_tags);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
