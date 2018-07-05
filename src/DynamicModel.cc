@@ -5264,39 +5264,6 @@ DynamicModel::substituteLeadLagInternal(aux_var_t type, bool deterministic_model
       aux_equation = substeq;
     }
 
- // Substitute in diff_aux_equations
-  // Without this loop, the auxiliary equations in equations
-  // will diverge from those in diff_aux_equations
-  for (auto & diff_aux_equation : diff_aux_equations)
-    {
-      expr_t subst;
-      switch (type)
-        {
-        case avEndoLead:
-          subst = diff_aux_equation->substituteEndoLeadGreaterThanTwo(subst_table,
-                                                                     neweqs, deterministic_model);
-          break;
-        case avEndoLag:
-          subst = diff_aux_equation->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-          break;
-        case avExoLead:
-          subst = diff_aux_equation->substituteExoLead(subst_table, neweqs, deterministic_model);
-          break;
-        case avExoLag:
-          subst = diff_aux_equation->substituteExoLag(subst_table, neweqs);
-          break;
-        case avDiffForward:
-          subst = diff_aux_equation->differentiateForwardVars(subset, subst_table, neweqs);
-          break;
-        default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
-          exit(EXIT_FAILURE);
-        }
-      auto *substeq = dynamic_cast<BinaryOpNode *>(subst);
-      assert(substeq != nullptr);
-      diff_aux_equation = substeq;
-    }
-
   // Add new equations
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
@@ -5425,7 +5392,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbe
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
 
-  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
   if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
@@ -5465,16 +5432,10 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
 
-  copy(neweqs.begin(), neweqs.end(), back_inserter(diff_aux_equations));
+  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
-}
-
-void
-DynamicModel::combineDiffAuxEquations()
-{
-  copy(diff_aux_equations.begin(), diff_aux_equations.end(), back_inserter(aux_equations));
 }
 
 void
