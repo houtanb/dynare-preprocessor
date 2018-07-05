@@ -423,13 +423,13 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  void substituteUnaryOps(StaticModel &static_model);
+  void substituteUnaryOps();
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags);
+  void substituteUnaryOps(set<string> &eq_tags);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers);
+  void substituteUnaryOps(vector<int> &eqnumbers);
 
   //! Substitutes diff operator
   void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);

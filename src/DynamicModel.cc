@@ -5339,24 +5339,24 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model)
+DynamicModel::substituteUnaryOps()
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  substituteUnaryOps(static_model, eqnumbers);
+  substituteUnaryOps(eqnumbers);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags)
+DynamicModel::substituteUnaryOps(set<string> &var_model_eqtags)
 {
   vector<int> eqnumbers;
   getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  substituteUnaryOps(static_model, eqnumbers);
+  substituteUnaryOps(eqnumbers);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers)
+DynamicModel::substituteUnaryOps(vector<int> &eqnumbers)
 {
   unary_op_aux_var_table_t nodes;
 
@@ -5368,22 +5368,22 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbe
   // Only substitute unary ops in model local variables that appear in VAR equations
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
-      it.second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+      it.second->findUnaryOpNodesForAuxVarCreation(nodes);
 
   for (int eqnumber : eqnumbers)
-    equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+    equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(nodes);
 
   // Substitute in model local variables
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
-    it.second = it.second->substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs);
+    it.second = it.second->substituteUnaryOpNodes(nodes, subst_table, neweqs);
 
   // Substitute in equations
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
-                                                   substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
+                                                   substituteUnaryOpNodes(nodes, subst_table, neweqs));
       assert(substeq != nullptr);
       equation = substeq;
     }

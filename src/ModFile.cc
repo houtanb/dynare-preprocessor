@@ -364,11 +364,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   if (transform_unary_ops)
-    dynamic_model.substituteUnaryOps(diff_static_model);
+    dynamic_model.substituteUnaryOps();
   else
     // substitute only those unary ops that appear in VAR equations
     // NB: equation tags are stored at parsing time in `substitute_unary_ops_in_equation_tags`
-    dynamic_model.substituteUnaryOps(diff_static_model, substitute_unary_ops_in_equation_tags);
+    dynamic_model.substituteUnaryOps(substitute_unary_ops_in_equation_tags);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
   ExprNode::subst_table_t diff_subst_table;
@@ -377,8 +377,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Var Model
   map<string, vector<string>> var_model_eq_tags;
   map<string, pair<SymbolList, int>> var_model_info_var_expectation;
-  map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>
-    var_model_info_pac_expectation;
+  map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>> var_model_info_pac_expectation;
   for (auto & statement : statements)
     {
       int max_lag;
