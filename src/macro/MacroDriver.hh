@@ -84,20 +84,21 @@ private:
   //! True iff current context is the body of a loop
   bool is_for_context;
   //! If current context is the body of a loop, contains the string of the loop body
-  string for_body;
+  string for_body, for_comp_body;
   //! If current context is the body of a loop, contains the location of the beginning of the body
-  Macro::parser::location_type for_body_loc;
+  Macro::parser::location_type for_body_loc, for_comp_body_loc;
 
   //! Temporary variable used in FOR_BODY mode
-  string for_body_tmp;
+  string for_body_tmp, for_comp_body_tmp;
   //! Temporary variable used in FOR_BODY mode
-  Macro::parser::location_type for_body_loc_tmp;
+  Macro::parser::location_type for_body_loc_tmp, for_comp_body_loc_tmp;
   //! Temporary variable used in FOR_BODY mode. Keeps track of the location of the @#for statement, for reporting messages
-  Macro::parser::location_type for_stmt_loc_tmp;
+  Macro::parser::location_type for_stmt_loc_tmp, for_comp_stmt_loc_tmp;
   //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested @#for/@#endfor
   int nested_for_nb;
   //! Set to true while parsing a FOR statement (only the statement, not the loop body)
   bool reading_for_statement;
+  bool reading_for_comprehension;
 
   //! Temporary variable used in THEN_BODY and ELSE_BODY modes. Keeps track of number of nested @#if
   int nested_if_nb;

@@ -48,11 +48,13 @@ using token = Macro::parser::token;
 
 %option prefix="Macro"
 
-%option case-insensitive noyywrap nounput batch debug never-interactive
+%option case-insensitive noyywrap batch debug never-interactive
 
 %x STMT
 %x EXPR
 %x FOR_BODY
+%x END_FOR_COMP
+%x FOR_COMP_STORAGE
 %x THEN_BODY
 %x ELSE_BODY
 
@@ -210,8 +212,6 @@ CONT \\\\
                             }
 <STMT,EXPR>\(               { return token::LPAREN; }
 <STMT,EXPR>\)               { return token::RPAREN; }
-<STMT,EXPR>\[               { return token::LBRACKET; }
-<STMT,EXPR>\]               { return token::RBRACKET; }
 <STMT,EXPR>:                { return token::COLON; }
 <STMT,EXPR>,                { return token::COMMA; }
 <STMT,EXPR>=                { return token::EQUAL; }
@@ -245,6 +245,63 @@ CONT \\\\
 <STMT>echomacrovars         { return token::ECHOMACROVARS; }
 <STMT>save                  { return token::SAVE; }
 
+<STMT,EXPR>\]{SPC}*(\/\/.*)?{EOL} {
+                              unput('\n');
+                              if (reading_for_comprehension)
+                                BEGIN(END_FOR_COMP);
+                              return token::RBRACKET;
+                            }
+<END_FOR_COMP>{EOL}         {
+                              yylloc->step();
+                              reading_for_comprehension = false;
+                              if (driver.iter_loop())
+                                {
+                                  // Save old buffer state and location
+                                  save_context(yylloc);
+
+                                  is_for_context = true;
+                                  for_body = for_body_tmp;
+                                  for_body_loc = for_body_loc_tmp;
+
+                                  new_loop_body_buffer(yylloc);
+                                }
+                              unput('\n');
+                              BEGIN(STMT);
+                            }
+<STMT,EXPR>\[               {
+                              // Store everything that comes after a [
+                              // if you hit EOL and haven't seen a `for`
+                              // unput everything and reparse normally
+                              for_stmt_loc_tmp = *yylloc;
+                              //yylloc->lines(1);
+                              //yylloc->step();
+                              for_body_tmp.erase();
+                              for_body_loc_tmp = *yylloc;
+                              BEGIN(FOR_COMP_STORAGE);
+                              return token::LBRACKET;
+                            }
+<FOR_COMP_STORAGE>for       {
+                              reading_for_comprehension = true;
+                              BEGIN(EXPR);
+                              return token::FOR;
+                            }
+<FOR_COMP_STORAGE>{EOL}     {
+                              char *uput = &(for_body_tmp.back());
+                              unput('\n');
+                              while (uput >= &(for_body_tmp.front()))
+                                unput(*uput--);
+                              BEGIN(STMT);
+                            }
+<FOR_COMP_STORAGE><<EOF>>   {
+                              char *uput = &(for_body_tmp.back());
+                              while (uput >= &(for_body_tmp.front()))
+                                unput(*uput--);
+                              BEGIN(STMT);
+                            }
+<FOR_COMP_STORAGE>.         { for_body_tmp.append(yytext); yylloc->step(); }
+
+
+<STMT,EXPR>\]               { return token::RBRACKET; }
 <STMT>for                   { reading_for_statement = true; return token::FOR; }
 <STMT>endfor                { driver.error(*yylloc, "@#endfor is not matched by a @#for statement"); }
 
@@ -422,8 +479,8 @@ CONT \\\\
 
 MacroFlex::MacroFlex(istream* in, ostream* out, bool no_line_macro_arg, vector<string> path_arg)
   : MacroFlexLexer(in, out), input(in), no_line_macro(no_line_macro_arg), path(path_arg),
-    is_for_context(false),
-    reading_for_statement(false), reading_if_statement(false)
+    is_for_context(false), is_for_comp_context(false),
+    reading_for_statement(false), reading_for_comprehension(false), reading_if_statement(false)
 {
 }
 

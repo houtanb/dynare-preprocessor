@@ -67,7 +67,7 @@ class MacroDriver;
 }
 
 %token COMMA DEFINE LINE FOR IN IF ECHO_DIR ERROR IFDEF IFNDEF POWER
-%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
+%token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE DO
 
 %token <int> INTEGER
 %token <string> NAME STRING
@@ -82,9 +82,9 @@ class MacroDriver;
 %precedence UMINUS UPLUS EXCLAMATION
 %precedence LBRACKET
 
-%type <vector<string>> comma_name
+%type <vector<string>> comma_name comprehension_variable_list
 %type <MacroValuePtr> expr
-%type <vector<MacroValuePtr>> comma_expr tuple_comma_expr
+%type <vector<MacroValuePtr>> comma_expr tuple_comma_expr comprehension
 %%
 
 %start statement_list_or_nothing;
@@ -201,6 +201,8 @@ expr : INTEGER
              error(@$, "Index out of bounds");
            }
        }
+     | LBRACKET comprehension
+       { $$ = make_shared<ArrayMV>($2); }
      | LBRACKET comma_expr RBRACKET
        { $$ = make_shared<ArrayMV>($2); }
      | expr COLON expr
@@ -214,6 +216,27 @@ expr : INTEGER
      | expr POWER expr
        { TYPERR_CATCH($$ = $1->power($3), @$); }
      ;
+
+comprehension_variable_list : NAME
+                              {
+                                $$ = vector<string>{$1};
+                                driver.set_variable($1, make_shared<IntMV>(1));
+                              }
+                            | comprehension_variable_list COMMA NAME
+                              {
+                                $1.push_back($3);
+                                $$ = $1;
+                                driver.set_variable($3, make_shared<IntMV>(1));
+                              }
+                            ;
+
+comprehension : FOR LPAREN comprehension_variable_list RPAREN IN expr RBRACKET
+                {
+                  cout << " ************************** Initializisg LOOP !" << endl;
+                  TYPERR_CATCH(driver.init_loop($3, $6), @$);
+                  $$ = vector<MacroValuePtr>{};
+                }
+              ;
 
 comma_expr : %empty
              { $$ = vector<MacroValuePtr>{}; } // Empty array

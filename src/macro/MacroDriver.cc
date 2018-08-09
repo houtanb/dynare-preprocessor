@@ -205,7 +205,7 @@ MacroDriver::init_loop(const string &name, MacroValuePtr value) noexcept(false)
   auto mv = dynamic_pointer_cast<ArrayMV>(value);
   if (!mv)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
-  loop_stack.emplace(vector<string> {name}, move(mv), 0);
+  loop_stack.emplace(vector<string> {move(name)}, move(mv), 0);
 }
 
 void
@@ -214,9 +214,8 @@ MacroDriver::init_loop(const vector<string> &names, MacroValuePtr value) noexcep
   auto mv = dynamic_pointer_cast<ArrayMV>(value);
   if (!mv)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
-  loop_stack.emplace(names, move(mv), 0);
+  loop_stack.emplace(move(names), move(mv), 0);
 }
-
 
 bool
 MacroDriver::iter_loop()  noexcept(false)
@@ -227,7 +226,7 @@ MacroDriver::iter_loop()  noexcept(false)
   int &i = get<2>(loop_stack.top());
   auto mv = get<1>(loop_stack.top());
   vector<string> &names = get<0>(loop_stack.top());
-
+  cout << i << endl;
   if (i >= static_cast<int>(mv->values.size()))
     {
       loop_stack.pop();
