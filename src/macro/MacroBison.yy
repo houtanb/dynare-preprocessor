@@ -142,6 +142,7 @@ expr : INTEGER
        { $$ = make_shared<TupleMV>($2); }
      | NAME
        {
+         cout << "BISONYY: " << $1 << endl;
          try
            {
              $$ = driver.get_variable($1);

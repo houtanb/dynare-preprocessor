@@ -57,15 +57,16 @@ private:
     istream *input;
     struct yy_buffer_state *buffer;
     const Macro::parser::location_type yylloc;
-    const bool is_for_context;
+    const bool is_for_context, is_for_comp_context;
     const string for_body;
     const Macro::parser::location_type for_body_loc;
     ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
                 Macro::parser::location_type &yylloc_arg, bool is_for_context_arg,
-                string for_body_arg,
+                bool is_for_comp_context_arg, string for_body_arg,
                 Macro::parser::location_type &for_body_loc_arg) :
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), is_for_context(is_for_context_arg),
-      for_body(move(for_body_arg)), for_body_loc(for_body_loc_arg)
+      is_for_comp_context(is_for_comp_context_arg), for_body(move(for_body_arg)),
+      for_body_loc(for_body_loc_arg)
     {
     }
   };
@@ -82,7 +83,7 @@ private:
   //! The paths to search when looking for .mod files
   vector<string> path;
   //! True iff current context is the body of a loop
-  bool is_for_context;
+  bool is_for_context, is_for_comp_context;
   //! If current context is the body of a loop, contains the string of the loop body
   string for_body, for_comp_body;
   //! If current context is the body of a loop, contains the location of the beginning of the body

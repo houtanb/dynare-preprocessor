@@ -253,18 +253,18 @@ CONT \\\\
                             }
 <END_FOR_COMP>{EOL}         {
                               yylloc->step();
-                              reading_for_comprehension = false;
                               if (driver.iter_loop())
                                 {
                                   // Save old buffer state and location
                                   save_context(yylloc);
 
-                                  is_for_context = true;
+                                  is_for_comp_context = true;
                                   for_body = for_body_tmp;
                                   for_body_loc = for_body_loc_tmp;
 
                                   new_loop_body_buffer(yylloc);
                                 }
+                              reading_for_comprehension = false;
                               unput('\n');
                               BEGIN(STMT);
                             }
@@ -286,6 +286,7 @@ CONT \\\\
                               return token::FOR;
                             }
 <FOR_COMP_STORAGE>{EOL}     {
+                              is_for_comp_context = false;
                               char *uput = &(for_body_tmp.back());
                               unput('\n');
                               while (uput >= &(for_body_tmp.front()))
@@ -293,6 +294,7 @@ CONT \\\\
                               BEGIN(STMT);
                             }
 <FOR_COMP_STORAGE><<EOF>>   {
+                              is_for_comp_context = false;
                               char *uput = &(for_body_tmp.back());
                               while (uput >= &(for_body_tmp.front()))
                                 unput(*uput--);
@@ -317,6 +319,7 @@ CONT \\\\
 
 <STMT,EXPR>[A-Za-z_][A-Za-z0-9_]* {
                               yylval->build<string>(yytext);
+                              cout << "MATCHED A NAME: " << yytext << endl;
                               return token::NAME;
                             }
 
@@ -456,7 +459,7 @@ CONT \\\\
 
                               /* If we are not in a loop body, or if the loop has terminated,
                                  pop a context */
-                              if (is_for_context && driver.iter_loop())
+                              if ((is_for_context || is_for_comp_context) && driver.iter_loop())
                                 new_loop_body_buffer(yylloc);
                               else
                                 restore_context(yylloc);
@@ -471,8 +474,22 @@ CONT \\\\
 #endif
                             }
 
- /* Copy everything else to output */
-<INITIAL>.                  { yylloc->step(); ECHO; }
+<INITIAL>.                  {
+                              if (is_for_comp_context)
+                                {
+                                  cout << "I am actually reading a for comprehension!" << endl;
+                                  cout << yytext << endl << endl;
+                                  is_for_comp_context = false;
+                                  yyless(0);
+                                  BEGIN(EXPR);
+                                }
+                              else
+                                {
+                                  /* Copy everything else to output */
+                                  yylloc->step();
+                                  ECHO;
+                                }
+                            }
 
 <*>.                        { driver.error(*yylloc, "Macro lexer error: '" + string(yytext) + "'"); }
 %%
@@ -501,7 +518,7 @@ void
 MacroFlex::save_context(Macro::parser::location_type *yylloc)
 {
   context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, is_for_context,
-                                 for_body, for_body_loc));
+                                 is_for_comp_context, for_body, for_body_loc));
 }
 
 void
@@ -511,6 +528,7 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   yy_switch_to_buffer(context_stack.top().buffer);
   *yylloc = context_stack.top().yylloc;
   is_for_context = context_stack.top().is_for_context;
+  is_for_comp_context = context_stack.top().is_for_comp_context;
   for_body = context_stack.top().for_body;
   for_body_loc = context_stack.top().for_body_loc;
   // Remove top of stack
@@ -570,6 +588,7 @@ MacroFlex::create_include_context(string *filename, Macro::parser::location_type
   yylloc->begin.column = yylloc->end.column = 0;
   // We are not in a loop body
   is_for_context = false;
+  is_for_comp_context = false;
   for_body.clear();
   // Output @#line information
   output_line(yylloc);
@@ -585,6 +604,7 @@ MacroFlex::create_then_context(Macro::parser::location_type *yylloc)
   *yylloc = then_body_loc_tmp;
   yylloc->begin.filename = yylloc->end.filename = new string(*then_body_loc_tmp.begin.filename);
   is_for_context = false;
+  is_for_comp_context = false;
   for_body.clear();
   output_line(yylloc);
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
@@ -598,6 +618,7 @@ MacroFlex::create_else_context(Macro::parser::location_type *yylloc)
   *yylloc = else_body_loc_tmp;
   yylloc->begin.filename = yylloc->end.filename = new string(*else_body_loc_tmp.begin.filename);
   is_for_context = false;
+  is_for_comp_context = false;
   for_body.clear();
   output_line(yylloc);
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
@@ -606,10 +627,13 @@ MacroFlex::create_else_context(Macro::parser::location_type *yylloc)
 void
 MacroFlex::new_loop_body_buffer(Macro::parser::location_type *yylloc)
 {
+  cout << "NEW LOOP BUFF: " << (reading_for_comprehension ? "1" : "0") << " "
+       << "..." << for_body << "..." << endl;
   input = new stringstream(for_body);
   *yylloc = for_body_loc;
   yylloc->begin.filename = yylloc->end.filename = new string(*for_body_loc.begin.filename);
   output_line(yylloc);
+  cout << "Switching buffers" << endl;
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
 }
 
