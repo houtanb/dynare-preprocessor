@@ -323,7 +323,15 @@ CONT \\\\
                               return token::NAME;
                             }
 
-<EXPR><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
+<EXPR><<EOF>>               {
+                              if (is_for_comp_context)
+                                if (driver.iter_loop())
+                                  new_loop_body_buffer(yylloc);
+                                else
+                                  restore_context(yylloc);
+                              else
+                                driver.error(*yylloc, "Unexpected end of file while parsing a macro expression");
+                            }
 <STMT><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro statement"); }
 
 <FOR_BODY>{EOL}             { yylloc->lines(1); yylloc->step(); for_body_tmp.append(yytext); }
@@ -479,7 +487,6 @@ CONT \\\\
                                 {
                                   cout << "I am actually reading a for comprehension!" << endl;
                                   cout << yytext << endl << endl;
-                                  is_for_comp_context = false;
                                   yyless(0);
                                   BEGIN(EXPR);
                                 }

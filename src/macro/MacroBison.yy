@@ -145,10 +145,12 @@ expr : INTEGER
          cout << "BISONYY: " << $1 << endl;
          try
            {
+             cout << "oh hello" << endl;
              $$ = driver.get_variable($1);
            }
          catch(MacroDriver::UnknownVariable(&e))
            {
+             cout << "Yikes!" << endl;
              error(@$, "Unknown variable: " + e.name);
            }
        }
