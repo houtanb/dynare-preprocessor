@@ -177,4 +177,43 @@ VarModelTable::empty() const
   return names.empty();
 }
 
+
+class OlsModelTable
+{
+private:
+  SymbolTable &symbol_table;
+  set<string> names;
+  map<string, string> datafiles;
+  map<string, vector<string>> eqtags, fitted_eqtags, fitted_names, fitted_transformation;
+public:
+  OlsModelTable(SymbolTable &symbol_table_arg);
+
+  void addVarModel(string name, vector<string> eqtags,
+                   pair<SymbolList, int> symbol_list_and_order_arg);
+
+  //! Add an OLS model
+  void addOlsModel(string name_arg, string datafile, vector<string> eqtags_arg,
+                   vector<string> fitted_eqtags_arg, vector<string> fitted_names_arg, vector<string> fitted_transformation_arg);
+
+  inline bool isExistingOlsModelName(const string &name_arg) const;
+
+  map<string, vector<string>> getEqTags() const;
+  vector<string> getEqTags(const string &name_arg) const;
+
+  //! Write output of this class
+  void writeOutput(const string &basename, ostream &output) const;
+
+  //! Write JSON Output
+  void writeJsonOutput(ostream &output) const;
+
+private:
+  void checkModelName(const string &name_arg) const;
+};
+
+inline bool
+OlsModelTable::isExistingOlsModelName(const string &name_arg) const
+{
+  return names.find(name_arg) == names.end() ? false : true;
+}
+
 #endif

@@ -4895,3 +4895,22 @@ VarExpectationModelStatement::writeJsonOutput(ostream &output) const
   discount->writeOutput(output);
   output << "\"}";
 }
+
+OlsStatement::OlsStatement(string name_arg) :
+  name{move(name_arg)}
+{
+}
+
+void
+OlsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "basename.ols_" << name << "();" << endl;
+}
+
+void
+OlsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"ols\","
+         << "\"model_name\": \"" << name
+         << "\"}";
+}

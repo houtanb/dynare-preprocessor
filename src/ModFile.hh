@@ -55,6 +55,8 @@ public:
   VarModelTable var_model_table;
   //! Trend Component Model Table used for storing info about trend component models
   TrendComponentModelTable trend_component_model_table;
+  //! OLS Model Table used for storing info about ols models
+  OlsModelTable ols_model_table;
   //! Expressions outside model block
   DataTree expressions_tree;
   //! Original model, as declared in the "model" block, that won't be modified by the preprocessor

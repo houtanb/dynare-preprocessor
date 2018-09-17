@@ -374,7 +374,8 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
                                           mod_file->num_constants,
                                           mod_file->external_functions_table,
                                           mod_file->trend_component_model_table,
-                                          mod_file->var_model_table);
+                                          mod_file->var_model_table,
+                                          mod_file->ols_model_table);
       mod_file->dynamic_model.updateAfterVariableChange(*dm);
 
       // remove error messages
@@ -1529,6 +1530,51 @@ ParsingDriver::var_model()
   symbol_list.clear();
   options_list.clear();
   var_map[its->second] = symbol_list.getSymbols();
+}
+
+void
+ParsingDriver::ols()
+{
+  const auto its = options_list.string_options.find("ols.model_name");
+  if (its == options_list.string_options.end())
+    error("You must pass the model_name option to the ols statement.");
+  auto name = its->second;
+
+  const auto its1 = options_list.string_options.find("ols.datafile");
+  if (its1 == options_list.string_options.end())
+    error("You must pass the datafile option to the ols statement.");
+  auto datafile = its1->second;
+
+  vector<string> eqtags;
+  const auto itvs = options_list.vector_str_options.find("ols.eqtags");
+  if (itvs == options_list.vector_str_options.end())
+    error("You must pass the eqtags option to the ols statement");
+  eqtags = itvs->second;
+
+  vector<string> fitted_eqtags, fitted_names, fitted_transformation;
+  const auto itvs1 = options_list.vector_str_options.find("ols.fitted_eqtags");
+  if (itvs1 != options_list.vector_str_options.end())
+    {
+      fitted_eqtags = itvs1->second;
+      const auto itvs2 = options_list.vector_str_options.find("ols.fitted_names");
+      if (itvs2 != options_list.vector_str_options.end())
+        {
+          fitted_names = itvs2->second;
+          if (fitted_eqtags.size() != fitted_names.size())
+            error("The fitted_names option must have the same length as the fitted_eqtags");
+        }
+      const auto itvs3 = options_list.vector_str_options.find("ols.fitted_transformation");
+      if (itvs3 != options_list.vector_str_options.end())
+        {
+          fitted_transformation = itvs3->second;
+          if (fitted_eqtags.size() != fitted_transformation.size())
+            error("The fitted_transformation option must have the same length as the fitted_eqtags");
+        }
+    }
+  string name1 (name);
+  mod_file->addStatement(make_unique<OlsStatement>(name));
+  mod_file->ols_model_table.addOlsModel(name1, datafile, eqtags, fitted_eqtags, fitted_names, fitted_transformation);
+  options_list.clear();
 }
 
 void

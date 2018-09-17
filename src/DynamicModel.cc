@@ -35,10 +35,12 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg,
                            ExternalFunctionsTable &external_functions_table_arg,
                            TrendComponentModelTable &trend_component_model_table_arg,
-                           VarModelTable &var_model_table_arg) :
+                           VarModelTable &var_model_table_arg,
+                           OlsModelTable &ols_model_table_arg) :
   ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
   trend_component_model_table(trend_component_model_table_arg),
   var_model_table(var_model_table_arg),
+  ols_model_table(ols_model_table_arg),
   max_lag(0), max_lead(0),
   max_endo_lag(0), max_endo_lead(0),
   max_exo_lag(0), max_exo_lead(0),
@@ -3950,6 +3952,42 @@ DynamicModel::fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_sub
   trend_component_model_table.setAR(ARr);
   fillErrorComponentMatrix(ECr, diff_subst_table);
   trend_component_model_table.setEC(ECr);
+}
+
+void
+DynamicModel::fillOlsModelTable(StaticModel &static_model) const
+{
+  map<string, map<int, tuple<expr_t, expr_t, vector<pair<expr_t, expr_t>>>>> regressionr;
+  for (const auto & it : ols_model_table.getEqTags())
+    {
+      map<int, tuple<expr_t, expr_t, vector<pair<expr_t, expr_t>>>> regression; // eqn -> <lhs, constant, vec<param, var>>
+      for (const auto & eqtag : it.second)
+        {
+          int eqn = -1;
+          for (const auto & equation_tag : equation_tags)
+            if (equation_tag.second.first == "name"
+                && equation_tag.second.second == eqtag)
+              {
+                eqn = equation_tag.first;
+                break;
+              }
+
+          if (eqn == -1)
+            {
+              cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          expr_t lhs_expr_t = Zero;
+          expr_t constant_expr_t = Zero;
+          equations[eqn]->get_arg1()->getOlsLhs(lhs_expr_t);
+          equations[eqn]->get_arg2()->getOlsConstant(constant_expr_t);
+          vector<pair<expr_t, expr_t>> params_and_vars;
+          equations[eqn]->get_arg2()->getOlsParamsAndVars(lhs_expr_t, constant_expr_t, params_and_vars);
+          regression[eqn] = make_tuple(lhs_expr_t, constant_expr_t, params_and_vars);
+        }
+      regressionr[it.first] = regression;
+    }
 }
 
 void

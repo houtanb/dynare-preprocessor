@@ -481,6 +481,8 @@ public:
   void trend_component_model();
   //! Writes a var (vector autoregression) command
   void var_model();
+  //! Writes a var (vector autoregression) command
+  void ols();
   //! Writes a simul command
   void simul();
   //! Writes check command

@@ -32,19 +32,20 @@
 ModFile::ModFile(WarningConsolidation &warnings_arg)
   : var_model_table(symbol_table),
     trend_component_model_table(symbol_table),
+    ols_model_table(symbol_table),
     expressions_tree(symbol_table, num_constants, external_functions_table),
     original_model(symbol_table, num_constants, external_functions_table,
-                   trend_component_model_table, var_model_table),
+                   trend_component_model_table, var_model_table, ols_model_table),
     dynamic_model(symbol_table, num_constants, external_functions_table,
-                  trend_component_model_table, var_model_table),
+                  trend_component_model_table, var_model_table, ols_model_table),
     trend_dynamic_model(symbol_table, num_constants, external_functions_table,
-                        trend_component_model_table, var_model_table),
+                        trend_component_model_table, var_model_table, ols_model_table),
     ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table,
-                                       trend_component_model_table, var_model_table),
+                                       trend_component_model_table, var_model_table, ols_model_table),
     orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table,
-                              trend_component_model_table, var_model_table),
+                              trend_component_model_table, var_model_table, ols_model_table),
     epilogue(symbol_table, num_constants, external_functions_table,
-             trend_component_model_table, var_model_table),
+             trend_component_model_table, var_model_table, ols_model_table),
     static_model(symbol_table, num_constants, external_functions_table),
     steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
     diff_static_model(symbol_table, num_constants, external_functions_table),
@@ -395,6 +396,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   dynamic_model.fillTrendComponentmodelTableAREC(diff_subst_table);
   dynamic_model.fillVarModelTable();
   original_model.fillVarModelTableFromOrigModel(diff_static_model);
+  original_model.fillOlsModelTable(diff_static_model);
 
   // Pac Model
   for (auto & statement : statements)

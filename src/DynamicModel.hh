@@ -35,6 +35,8 @@ public:
   TrendComponentModelTable &trend_component_model_table;
   //! A reference to the VAR model table
   VarModelTable &var_model_table;
+  //! A reference to the OLS model table
+  OlsModelTable &ols_model_table;
 private:
   constexpr static double zero_band{1e-8};
 
@@ -259,7 +261,8 @@ public:
                NumericalConstants &num_constants_arg,
                ExternalFunctionsTable &external_functions_table_arg,
                TrendComponentModelTable &trend_component_model_table_arg,
-               VarModelTable &var_model_table_arg);
+               VarModelTable &var_model_table_arg,
+               OlsModelTable &ols_model_table_arg);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   VariableNode *AddVariable(int symb_id, int lag = 0) override;
@@ -323,6 +326,9 @@ public:
   //! Fill the Var Model Table
   void fillVarModelTable() const;
   void fillVarModelTableFromOrigModel(StaticModel &static_model) const;
+
+  //! Fill the OLS Model Table
+  void fillOlsModelTable(StaticModel &static_model) const;
 
   //! Update the rhs references in the var model and trend component tables
   //! after substitution of auxiliary variables and find the trend variables

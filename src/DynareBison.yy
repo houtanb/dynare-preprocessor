@@ -74,7 +74,7 @@ class ParsingDriver;
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR POSTERIOR_SAMPLING_METHOD
-%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
+%token BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER OLS FITTED_NAMES FITTED_EQTAGS FITTED_TRANSFORMATION
 %token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
@@ -302,6 +302,7 @@ statement : parameters
           | smm_estimation
           | shock_groups
           | var_expectation_model
+          | ols
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -423,6 +424,20 @@ var_expectation_model_option : VARIABLE EQUAL symbol
                              | DISCOUNT EQUAL expression
                                { driver.var_expectation_model_discount = $3; }
                              ;
+
+ols : OLS '(' ols_options_list ')' ';' { driver.ols(); } ;
+
+ols_options_list : ols_options_list ols_option
+                 | ols_option
+                 ;
+
+ols_option : o_ols_datafile
+           | o_ols_fitted_eq_tags
+           | o_ols_fitted_names
+           | o_ols_fitted_transformation
+           | o_ols_eq_tags
+           | o_ols_name
+           ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
                restrictions_list END ';' { driver.end_VAR_restrictions($3); }
@@ -3211,6 +3226,12 @@ o_nobs : NOBS EQUAL vec_int
 o_trend_component_model_name : MODEL_NAME EQUAL symbol { driver.option_str("trend_component.name", $3); };
 o_trend_component_model_targets : TARGETS EQUAL vec_str { driver.option_vec_str("trend_component.targets", $3); }
 o_trend_component_model_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("trend_component.eqtags", $3); }
+o_ols_datafile : DATAFILE EQUAL filename { driver.option_str("ols.datafile", $3); };
+o_ols_fitted_eq_tags : FITTED_EQTAGS EQUAL vec_str { driver.option_vec_str("ols.fitted_eqtags", $3); };
+o_ols_fitted_names : FITTED_NAMES EQUAL vec_str { driver.option_vec_str("ols.fitted_names", $3); };
+o_ols_fitted_transformation : FITTED_TRANSFORMATION EQUAL vec_str { driver.option_vec_str("ols.fitted_transformation", $3); };
+o_ols_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("ols.eqtags", $3); };
+o_ols_name : MODEL_NAME EQUAL symbol { driver.option_str("ols.model_name", $3); };
 o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int_number

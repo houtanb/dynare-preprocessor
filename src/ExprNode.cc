@@ -391,6 +391,18 @@ NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
+NumConstNode::getOlsConstant(expr_t constant) const
+{
+}
+
+void
+NumConstNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
 NumConstNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
@@ -664,6 +676,11 @@ void
 NumConstNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
                                                 expr_t &optim_part,
                                                 expr_t &non_optim_part) const
+{
+}
+
+void
+NumConstNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
 {
 }
 
@@ -1195,6 +1212,23 @@ VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 {
   if (type == SymbolType::modelLocalVariable)
     datatree.getLocalVariable(symb_id)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
+}
+
+void
+VariableNode::getOlsConstant(expr_t constant) const
+{
+}
+
+void
+VariableNode::getOlsLhs(expr_t lhs) const
+{
+  if (type == SymbolType::endogenous && lag == 0)
+    lhs = datatree.AddPlus(lhs, datatree.AddVariable(symb_id, 0));
+  else
+    {
+      cerr << "ERROR: you can only have endogenous variables or unary ops on LHS of an OLS regression equation" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -1908,6 +1942,11 @@ void
 VariableNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
                                                 expr_t &optim_part,
                                                 expr_t &non_optim_part) const
+{
+}
+
+void
+VariableNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
 {
 }
 
@@ -2784,6 +2823,21 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 }
 
 void
+UnaryOpNode::getOlsConstant(expr_t constant) const
+{
+  arg->getOlsConstant(constant);
+}
+
+void
+UnaryOpNode::getOlsLhs(expr_t lhs) const
+{
+  if (op_code == UnaryOpcode::diff)
+    lhs = datatree.AddPlus(lhs, const_cast<UnaryOpNode *>(this));
+  else
+    arg->getOlsLhs(lhs);
+}
+
+void
 UnaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   if (op_code == UnaryOpcode::diff)
@@ -3545,6 +3599,12 @@ UnaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
                                                expr_t &non_optim_part) const
 {
   arg->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
+}
+
+void
+UnaryOpNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  arg->getOlsParamsAndVars(lhs, constant, params_and_vars);
 }
 
 void
@@ -5205,6 +5265,90 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
 }
 
 void
+BinaryOpNode::getOlsConstantHelper(const expr_t &arg1, const expr_t & arg2, expr_t constant) const
+{
+  if (dynamic_cast<NumConstNode *>(arg1) != nullptr)
+    constant = datatree.AddPlus(constant, arg1);
+  else if (dynamic_cast<VariableNode *>(arg1) != nullptr)
+    {
+      set<pair<int, int>> ids;
+      arg1->collectDynamicVariables(SymbolType::exogenous, ids);
+      arg1->collectDynamicVariables(SymbolType::endogenous, ids);
+      if (!ids.empty())
+        return;
+      arg1->collectDynamicVariables(SymbolType::parameter, ids);
+      if (!ids.empty())
+        constant = datatree.AddPlus(constant, arg1);
+    }
+}
+
+void
+BinaryOpNode::getOlsConstant(expr_t constant) const
+{
+  if (op_code != BinaryOpcode::plus)
+    return;
+
+  getOlsConstantHelper(arg1, arg2, constant);
+  getOlsConstantHelper(arg2, arg1, constant);
+  arg1->getOlsConstant(constant);
+  arg2->getOlsConstant(constant);
+}
+
+void
+BinaryOpNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+BinaryOpNode::getOlsParamsAndVarsHelper(const expr_t &arg1, const expr_t &arg2,
+                                        expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  if (op_code != BinaryOpcode::times)
+    return;
+
+  set<pair<int, int>> symb_id;
+  arg1->collectDynamicVariables(SymbolType::exogenous, symb_id);
+  arg2->collectDynamicVariables(SymbolType::exogenous, symb_id);
+  if (!symb_id.empty())
+      return;
+
+  arg1->collectDynamicVariables(SymbolType::parameter, symb_id);
+
+
+  // op_code == times
+  if (symb_id.size() != 1)
+    {
+      cerr << "ERROR: found more than one parmeter multiplying endogenous variable " << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (dynamic_cast<VariableNode *>(arg2) == nullptr)
+    {
+      cerr << "ERROR: can't multiply a variable by an expression in OLS" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  set<pair<int, int>> endog_id;
+  arg2->collectDynamicVariables(SymbolType::endogenous, endog_id);
+  if (endog_id.size() != 1)
+    {
+      cerr << "ERROR: found more than one endogenous multiplying endogenous variable " << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+BinaryOpNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  getOlsParamsAndVarsHelper(arg1, arg2, lhs, constant, params_and_vars);
+  getOlsParamsAndVarsHelper(arg2, arg1, lhs, constant, params_and_vars);
+  arg1->getOlsParamsAndVars(lhs, constant, params_and_vars);
+  arg2->getOlsParamsAndVars(lhs, constant, params_and_vars);
+}
+
+void
 BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
                                          int lhs_orig_symb_id,
                                          pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
@@ -6082,6 +6226,27 @@ TrinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int 
 }
 
 void
+TrinaryOpNode::getOlsConstant(expr_t constant) const
+{
+  cerr << "ERROR: Trinary operations not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+TrinaryOpNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+TrinaryOpNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  cerr << "ERROR: Trinary operations not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
 TrinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
@@ -6610,6 +6775,27 @@ AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileC
     argument->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx,
                    dynamic, steady_dynamic, tef_terms);
   return (arguments.size());
+}
+
+void
+AbstractExternalFunctionNode::getOlsConstant(expr_t constant) const
+{
+  cerr << "ERROR: External functions not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+AbstractExternalFunctionNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+AbstractExternalFunctionNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  cerr << "ERROR: External functions not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -8390,6 +8576,27 @@ VarExpectationNode::computeXrefs(EquationInfo &ei) const
 }
 
 void
+VarExpectationNode::getOlsConstant(expr_t constant) const
+{
+  cerr << "ERROR: Var expectation not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+VarExpectationNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+VarExpectationNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  cerr << "ERROR: Var expectation not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
 VarExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
@@ -8935,6 +9142,27 @@ PacExpectationNode::eval(const eval_context_t &eval_context) const noexcept(fals
 void
 PacExpectationNode::computeXrefs(EquationInfo &ei) const
 {
+}
+
+void
+PacExpectationNode::getOlsConstant(expr_t constant) const
+{
+  cerr << "ERROR: Pac expectation not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+PacExpectationNode::getOlsLhs(expr_t lhs) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of an OLS regression equation" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+PacExpectationNode::getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const
+{
+  cerr << "ERROR: Pac expectation not supported for OLS regression" << endl;
+  exit(EXIT_FAILURE);
 }
 
 void

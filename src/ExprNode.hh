@@ -556,6 +556,11 @@ class ExprNode
       //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
       virtual bool isParamTimesEndogExpr() const = 0;
 
+      //! Get info for OLS
+      virtual void getOlsConstant(expr_t constant) const = 0;
+      virtual void getOlsLhs(expr_t lhs) const = 0;
+      virtual void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const = 0;
+
       //! Finds the share of optimizing agents in the PAC equation,
       //! the expr node associated with it,
       //! and the expr node associated with the non-optimizing part
@@ -666,6 +671,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -767,6 +775,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -892,6 +903,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -987,6 +1001,12 @@ public:
                                   int lhs_orig_symb_id,
                                   pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const;
+  void getOlsConstantHelper(const expr_t &arg1, const expr_t & arg2, expr_t constant) const;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVarsHelper(const expr_t &arg1, const expr_t &arg2,
+                                 expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacLHS(pair<int, int> &lhs);
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
@@ -1159,6 +1179,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1282,6 +1305,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1492,6 +1518,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1590,6 +1619,9 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
+  void getOlsConstant(expr_t constant) const override;
+  void getOlsLhs(expr_t lhs) const override;
+  void getOlsParamsAndVars(expr_t lhs, expr_t constant, vector<pair<expr_t, expr_t>> params_and_vars) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,

@@ -143,6 +143,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>var_model {BEGIN DYNARE_STATEMENT; return token::VAR_MODEL;}
 <INITIAL>trend_component_model {BEGIN DYNARE_STATEMENT; return token::TREND_COMPONENT_MODEL;}
 <INITIAL>var_expectation_model {BEGIN DYNARE_STATEMENT; return token::VAR_EXPECTATION_MODEL;}
+<INITIAL>ols {BEGIN DYNARE_STATEMENT; return token::OLS;}
 <INITIAL>pac_model {BEGIN DYNARE_STATEMENT; return token::PAC_MODEL;}
 <INITIAL>dsample {BEGIN DYNARE_STATEMENT; return token::DSAMPLE;}
 <INITIAL>Sigma_e {BEGIN DYNARE_STATEMENT; sigma_e = 1; return token::SIGMA_E;}
@@ -490,6 +491,9 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 }
 <DYNARE_STATEMENT>write_equation_tags {return token::WRITE_EQUATION_TAGS;}
 <DYNARE_STATEMENT>eqtags {return token::EQTAGS;}
+<DYNARE_STATEMENT>fitted_eqtags {return token::FITTED_EQTAGS;}
+<DYNARE_STATEMENT>fitted_names {return token::FITTED_NAMES;}
+<DYNARE_STATEMENT>fitted_transformation {return token::FITTED_TRANSFORMATION;}
 <DYNARE_STATEMENT>targets {return token::TARGETS;}
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
